@@ -10,7 +10,7 @@
   "type": "module",
   "typings": "build/lib/index.d.ts",
   "main": "build/lib/index.js",
-  "repository": "https://github.com/CheVeraId/kliento-js/",
+  "repository": "https://github.com/CheVeraId/kliento-js",
   "homepage": "https://docs.veraid.net/kliento-js/",
   "license": "MIT",
   "keywords": [
