@@ -1,9 +1,9 @@
 import { AsnProp, AsnPropTypes } from '@peculiar/asn1-schema';
 
 export class TokenClaimSchema {
-  @AsnProp({ type: AsnPropTypes.Utf8String, context: 0, implicit: true })
+  @AsnProp({ context: 0, implicit: true, type: AsnPropTypes.Utf8String })
   public key!: string;
 
-  @AsnProp({ type: AsnPropTypes.Utf8String, context: 1, implicit: true })
+  @AsnProp({ context: 1, implicit: true, type: AsnPropTypes.Utf8String })
   public value!: string;
 }
