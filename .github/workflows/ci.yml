@@ -12,6 +12,7 @@ jobs:
     permissions:
       id-token: write
       pages: write
+      contents: write  # To create a Git tag
     uses: relaycorp/shared-workflows/.github/workflows/nodejs-lib-release.yml@main
     with:
       api_docs: true
