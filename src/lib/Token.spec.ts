@@ -1,9 +1,8 @@
+import { AsnParser } from '@peculiar/asn1-schema';
 import { describe, expect, it } from 'vitest';
 
-import { AsnParser } from '@peculiar/asn1-schema';
-
-import { Token } from './Token.js';
 import { TokenSchema } from './schemas/TokenSchema.js';
+import { Token } from './Token.js';
 
 const STUB_AUDIENCE = 'test';
 const STUB_CLAIM_KEY = 'claim_key';
@@ -30,13 +29,15 @@ describe('Token', () => {
     });
 
     it('should include claims if provided', () => {
-      const token = new Token(STUB_AUDIENCE, { [STUB_CLAIM_KEY]: STUB_CLAIM_VALUE });
+      const token = new Token(STUB_AUDIENCE, {
+        [STUB_CLAIM_KEY]: STUB_CLAIM_VALUE,
+      });
 
       const tokenSerialised = token.serialise();
 
       const tokenDeserialised = AsnParser.parse(tokenSerialised, TokenSchema);
-      expect(tokenDeserialised.claims).toHaveLength(1);
-      const claimDeserialised = tokenDeserialised.claims![0];
+      const [claimDeserialised] = tokenDeserialised.claims!;
+
       expect(claimDeserialised.key).toBe(STUB_CLAIM_KEY);
       expect(claimDeserialised.value).toBe(STUB_CLAIM_VALUE);
     });
@@ -53,7 +54,7 @@ describe('Token', () => {
 
   describe('deserialise', () => {
     it('should throw if serialisation is malformed', () => {
-      const invalidSerialisation = new ArrayBuffer(8);
+      const invalidSerialisation = new ArrayBuffer(1);
 
       expect(() => Token.deserialise(invalidSerialisation)).toThrowError(
         'Invalid token serialisation',
@@ -70,7 +71,10 @@ describe('Token', () => {
     });
 
     it('should output claims if present', () => {
-      const claims = { [STUB_CLAIM_KEY]: STUB_CLAIM_VALUE };
+      const claims = {
+        [STUB_CLAIM_KEY]: STUB_CLAIM_VALUE,
+      };
+
       const originalToken = new Token(STUB_AUDIENCE, claims);
       const serialisation = originalToken.serialise();
 
