@@ -1,3 +1,1 @@
-export function foo() {
-  return 'bar';
-}
+export { Token } from './lib/Token.js';
