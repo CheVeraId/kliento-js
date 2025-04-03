@@ -50,4 +50,51 @@ describe('Token', () => {
       expect(tokenDeserialised.claims).toBeUndefined();
     });
   });
+
+  describe('deserialise', () => {
+    it('should throw if serialisation is malformed', () => {
+      const invalidSerialisation = new ArrayBuffer(8);
+
+      expect(() => Token.deserialise(invalidSerialisation)).toThrowError(
+        'Invalid token serialisation',
+      );
+    });
+
+    it('should output audience', () => {
+      const originalToken = new Token(STUB_AUDIENCE);
+      const serialisation = originalToken.serialise();
+
+      const deserialisedToken = Token.deserialise(serialisation);
+
+      expect(deserialisedToken.audience).toBe(STUB_AUDIENCE);
+    });
+
+    it('should output claims if present', () => {
+      const claims = { [STUB_CLAIM_KEY]: STUB_CLAIM_VALUE };
+      const originalToken = new Token(STUB_AUDIENCE, claims);
+      const serialisation = originalToken.serialise();
+
+      const deserialisedToken = Token.deserialise(serialisation);
+
+      expect(deserialisedToken.claims).toEqual(claims);
+    });
+
+    it('should not output claims if absent', () => {
+      const originalToken = new Token(STUB_AUDIENCE);
+      const serialisation = originalToken.serialise();
+
+      const deserialisedToken = Token.deserialise(serialisation);
+
+      expect(deserialisedToken.claims).toBeUndefined();
+    });
+
+    it('should not output claims if empty', () => {
+      const originalToken = new Token(STUB_AUDIENCE, {});
+      const serialisation = originalToken.serialise();
+
+      const deserialisedToken = Token.deserialise(serialisation);
+
+      expect(deserialisedToken.claims).toBeUndefined();
+    });
+  });
 });
