@@ -7,5 +7,6 @@
     "typeRoots": ["node_modules/@types"],
     "stripInternal": true
   },
-  "include": ["src/**/*.ts", "src/**/*.mjs"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.spec.ts"]
 }
