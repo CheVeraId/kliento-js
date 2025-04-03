@@ -26,6 +26,7 @@
     "static-checks:lint": "eslint -c .eslintrc.mjs .",
     "static-checks:prettier": "prettier \"src/**/*.ts\" --list-different",
     "test": "vitest run --coverage",
+    "test:integration": "exit 0",
     "tsc": "tsc",
     "doc-api": "typedoc src/index.ts --out build/docs",
     "clean": "del-cli build test"
