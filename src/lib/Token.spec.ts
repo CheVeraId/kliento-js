@@ -74,7 +74,6 @@ describe('Token', () => {
       const claims = {
         [STUB_CLAIM_KEY]: STUB_CLAIM_VALUE,
       };
-
       const originalToken = new Token(STUB_AUDIENCE, claims);
       const serialisation = originalToken.serialise();
 
