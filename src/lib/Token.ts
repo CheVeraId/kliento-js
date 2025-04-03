@@ -8,11 +8,20 @@ import { TokenClaimSetSchema } from './schemas/TokenClaimSetSchema.js';
  * Kliento token.
  */
 export class Token {
+  /**
+   * Create a new token.
+   * @param audience - The audience of the token.
+   * @param claims - The claims of the token.
+   */
   constructor(
     public readonly audience: string,
     public readonly claims?: Record<string, string>,
   ) {}
 
+  /**
+   * Serialise the token.
+   * @returns The serialised token.
+   */
   public serialise(): ArrayBuffer {
     const schema = new TokenSchema();
     schema.audience = this.audience;
