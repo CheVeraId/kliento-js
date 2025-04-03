@@ -9,6 +9,8 @@ jobs:
 
   release:
     needs: ci
+    permissions:
+      id-token: write
     uses: relaycorp/shared-workflows/.github/workflows/nodejs-lib-release.yml@main
     with:
       api_docs: true
