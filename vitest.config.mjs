@@ -4,11 +4,11 @@ export default defineConfig({
   test: {
     coverage: {
       enabled: true,
-      include: ['src/lib/**/*.ts'],
       exclude: ['src/index.ts'],
+      include: ['src/lib/**/*.ts'],
       thresholds: {
         100: true,
       },
     },
   },
-}); 
+});
