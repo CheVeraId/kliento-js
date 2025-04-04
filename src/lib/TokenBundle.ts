@@ -3,8 +3,8 @@ import { Chain, type Member, SignatureBundle } from '@relaycorp/veraid';
 import { KLIENTO_SERVICE_OID, MAX_TOKEN_BUNDLE_OCTETS } from './serviceConfig.js';
 import { Token } from './Token.js';
 import { TokenBundleOptions } from './TokenBundleOptions.js';
+import { TokenBundleVerification } from './TokenBundleVerification.js';
 import { TokenBundleVerificationOptions } from './TokenBundleVerificationOptions.js';
-import { TokenBundleVerificationResult } from './TokenBundleVerificationResult.js';
 
 /**
  * Kliento token bundle.
@@ -92,7 +92,7 @@ export class TokenBundle {
   public async verify(
     audience: string,
     { date, trustAnchors }: Partial<TokenBundleVerificationOptions> = {},
-  ): Promise<TokenBundleVerificationResult> {
+  ): Promise<TokenBundleVerification> {
     let plaintext: ArrayBuffer;
     let member: Member;
     try {
@@ -119,6 +119,6 @@ export class TokenBundle {
 
     const claims = token.claims ?? {};
 
-    return { claims, member };
+    return { claims, subject: member };
   }
 }

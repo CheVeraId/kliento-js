@@ -5,7 +5,7 @@ import type { ClaimSet } from './ClaimSet.js';
 /**
  * The result of verifying a token bundle.
  */
-export interface TokenBundleVerificationResult {
+export interface TokenBundleVerification {
   /**
    * The claims in the token bundle.
    */
@@ -14,5 +14,5 @@ export interface TokenBundleVerificationResult {
   /**
    * The member that signed the token bundle.
    */
-  readonly member: Member;
+  readonly subject: Member;
 }

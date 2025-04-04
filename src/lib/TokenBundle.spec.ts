@@ -240,12 +240,12 @@ describe('TokenBundle', () => {
           addSeconds(new Date(), TOKEN_BUNDLE_TTL),
         );
 
-        const { member } = await tokenBundle.verify(AUDIENCE, {
+        const { subject } = await tokenBundle.verify(AUDIENCE, {
           trustAnchors: MOCK_TRUST_CHAIN.dnssecTrustAnchors,
         });
 
-        expect(member.organisation).toBe(ORG_NAME);
-        expect(member.user).toBe(USER_NAME);
+        expect(subject.organisation).toBe(ORG_NAME);
+        expect(subject.user).toBe(USER_NAME);
       });
 
       it('should return token claims if bundle is valid', async () => {
