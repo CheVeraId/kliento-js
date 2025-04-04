@@ -140,4 +140,22 @@ describe('TokenBundle', () => {
       ).rejects.toThrow();
     });
   });
+
+  describe('serialise', () => {
+    it('should serialise token bundle', async () => {
+      const tokenBundle = await TokenBundle.sign(
+        TOKEN,
+        MOCK_TRUST_CHAIN.signerPrivateKey,
+        MOCK_TRUST_CHAIN.chain,
+        addSeconds(new Date(), 10),
+      );
+
+      const tokenBundleSerialised = tokenBundle.serialise();
+
+      const signatureBundleSerialised = tokenBundle.signatureBundle.serialise();
+      expect(
+        Buffer.from(tokenBundleSerialised).equals(Buffer.from(signatureBundleSerialised)),
+      ).toBeTruthy();
+    });
+  });
 });

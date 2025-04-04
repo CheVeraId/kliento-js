@@ -47,4 +47,12 @@ export class TokenBundle {
 
     return new TokenBundle(signatureBundle);
   }
+
+  /**
+   * Serialise the token bundle.
+   * @returns The serialised token bundle.
+   */
+  public serialise(): ArrayBuffer {
+    return this.signatureBundle.serialise();
+  }
 }
