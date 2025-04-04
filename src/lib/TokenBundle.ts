@@ -85,7 +85,9 @@ export class TokenBundle {
    * Verify the token bundle.
    * @param audience - The required audience of the token.
    * @param options - Verification options.
-   * @returns The token.
+   * @param options.date - The date at which to verify the token bundle.
+   * @param options.trustAnchors - The trust anchors with which to verify the token bundle.
+   * @returns The token claims.
    */
   public async verify(
     audience: string,
