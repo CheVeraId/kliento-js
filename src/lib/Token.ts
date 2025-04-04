@@ -1,5 +1,6 @@
 import { AsnParser, AsnSerializer } from '@peculiar/asn1-schema';
 
+import { ClaimSet } from './ClaimSet.js';
 import { TokenClaimSchema } from './schemas/TokenClaimSchema.js';
 import { TokenClaimSetSchema } from './schemas/TokenClaimSetSchema.js';
 import { TokenSchema } from './schemas/TokenSchema.js';
@@ -15,7 +16,7 @@ export class Token {
    */
   constructor(
     public readonly audience: string,
-    public readonly claims?: Record<string, string>,
+    public readonly claims?: ClaimSet,
   ) {}
 
   /**
