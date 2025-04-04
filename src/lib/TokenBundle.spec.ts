@@ -226,41 +226,59 @@ describe('TokenBundle', () => {
       ).rejects.toThrow(`Audience mismatch: Expected ${differentAudience}, got ${AUDIENCE}`);
     });
 
-    it('should return token claims if bundle is valid', async () => {
-      const token = new Token(AUDIENCE, {
-        [CLAIM_KEY]: CLAIM_VALUE,
+    describe('successful verification', () => {
+      it('should return member that signed bundle', async () => {
+        const tokenBundle = await TokenBundle.sign(
+          TOKEN,
+          MOCK_TRUST_CHAIN.signerPrivateKey,
+          MOCK_TRUST_CHAIN.chain,
+          addSeconds(new Date(), 10),
+        );
+
+        const { member } = await tokenBundle.verify(AUDIENCE, {
+          trustAnchors: MOCK_TRUST_CHAIN.dnssecTrustAnchors,
+        });
+
+        expect(member.organisation).toBe(ORG_NAME);
+        expect(member.user).toBe(USER_NAME);
       });
 
-      const tokenBundle = await TokenBundle.sign(
-        token,
-        MOCK_TRUST_CHAIN.signerPrivateKey,
-        MOCK_TRUST_CHAIN.chain,
-        addSeconds(new Date(), 10),
-      );
+      it('should return token claims if bundle is valid', async () => {
+        const token = new Token(AUDIENCE, {
+          [CLAIM_KEY]: CLAIM_VALUE,
+        });
 
-      const { claims } = await tokenBundle.verify(AUDIENCE, {
-        trustAnchors: MOCK_TRUST_CHAIN.dnssecTrustAnchors,
+        const tokenBundle = await TokenBundle.sign(
+          token,
+          MOCK_TRUST_CHAIN.signerPrivateKey,
+          MOCK_TRUST_CHAIN.chain,
+          addSeconds(new Date(), 10),
+        );
+
+        const { claims } = await tokenBundle.verify(AUDIENCE, {
+          trustAnchors: MOCK_TRUST_CHAIN.dnssecTrustAnchors,
+        });
+
+        expect(claims).toEqual({
+          [CLAIM_KEY]: CLAIM_VALUE,
+        });
       });
 
-      expect(claims).toEqual({
-        [CLAIM_KEY]: CLAIM_VALUE,
+      it('should return empty claims if bundle is valid but token has no claims', async () => {
+        const token = new Token(AUDIENCE);
+        const tokenBundle = await TokenBundle.sign(
+          token,
+          MOCK_TRUST_CHAIN.signerPrivateKey,
+          MOCK_TRUST_CHAIN.chain,
+          addSeconds(new Date(), 10),
+        );
+
+        const { claims } = await tokenBundle.verify(AUDIENCE, {
+          trustAnchors: MOCK_TRUST_CHAIN.dnssecTrustAnchors,
+        });
+
+        expect(claims).toEqual({});
       });
-    });
-
-    it('should return empty claims if bundle is valid but token has no claims', async () => {
-      const token = new Token(AUDIENCE);
-      const tokenBundle = await TokenBundle.sign(
-        token,
-        MOCK_TRUST_CHAIN.signerPrivateKey,
-        MOCK_TRUST_CHAIN.chain,
-        addSeconds(new Date(), 10),
-      );
-
-      const { claims } = await tokenBundle.verify(AUDIENCE, {
-        trustAnchors: MOCK_TRUST_CHAIN.dnssecTrustAnchors,
-      });
-
-      expect(claims).toEqual({});
     });
   });
 

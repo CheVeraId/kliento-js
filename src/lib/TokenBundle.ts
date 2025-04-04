@@ -1,4 +1,4 @@
-import { Chain, SignatureBundle } from '@relaycorp/veraid';
+import { Chain, type Member, SignatureBundle } from '@relaycorp/veraid';
 
 import { KLIENTO_SERVICE_OID, MAX_TOKEN_BUNDLE_OCTETS } from './serviceConfig.js';
 import { Token } from './Token.js';
@@ -94,8 +94,9 @@ export class TokenBundle {
     { date, trustAnchors }: Partial<TokenBundleVerificationOptions> = {},
   ): Promise<TokenBundleVerificationResult> {
     let plaintext: ArrayBuffer;
+    let member: Member;
     try {
-      ({ plaintext } = await this.signatureBundle.verify(
+      ({ plaintext, member } = await this.signatureBundle.verify(
         undefined,
         KLIENTO_SERVICE_OID,
         date,
@@ -118,6 +119,6 @@ export class TokenBundle {
 
     const claims = token.claims ?? {};
 
-    return { claims };
+    return { claims, member };
   }
 }
