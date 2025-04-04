@@ -115,6 +115,7 @@ export class TokenBundle {
     }
 
     const claims = token.claims ?? {};
+
     return { claims };
   }
 }
