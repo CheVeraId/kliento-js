@@ -1,6 +1,6 @@
 import { Chain, SignatureBundle } from '@relaycorp/veraid';
 
-import { KLIENTO_SERVICE_OID } from './serviceConfig.js';
+import { KLIENTO_SERVICE_OID, MAX_TOKEN_BUNDLE_OCTETS } from './serviceConfig.js';
 import { Token } from './Token.js';
 import { TokenBundleOptions } from './TokenBundleOptions.js';
 
@@ -15,6 +15,29 @@ export class TokenBundle {
 
   protected constructor(signatureBundle: SignatureBundle) {
     this.signatureBundle = signatureBundle;
+  }
+
+  /**
+   * Deserialise a token bundle.
+   * @param serialisation - The serialisation of the token bundle.
+   * @returns A new token bundle.
+   */
+  public static deserialise(serialisation: ArrayBuffer): TokenBundle {
+    if (MAX_TOKEN_BUNDLE_OCTETS < serialisation.byteLength) {
+      throw new Error(
+        'Token bundle serialisation is too large: ' +
+          `${serialisation.byteLength} bytes (max ${MAX_TOKEN_BUNDLE_OCTETS} octets)`,
+      );
+    }
+
+    let tokenBundle: TokenBundle;
+    try {
+      tokenBundle = new TokenBundle(SignatureBundle.deserialise(serialisation));
+    } catch (error) {
+      throw new Error('Token serialisation is malformed', { cause: error });
+    }
+
+    return tokenBundle;
   }
 
   /**
