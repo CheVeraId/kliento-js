@@ -1,6 +1,6 @@
 # Kliento JavaScript Library
 
-This is the JavaScript implementation of [VeraId](https://veraid.net/) Kliento, a client authentication protocol where tokens contain all the data required to be verified without pre-distributing public keys or accessing remote servers. Think JWTs, without JWKS documents to pre-distribute or download in real-time.
+This is the JavaScript implementation of [VeraId](https://veraid.net/) Kliento, a **client authentication protocol** where tokens contain all the data required to be verified without pre-distributing public keys or accessing remote servers. Think JWTs, without JWKS documents to pre-distribute or download in real-time.
 
 Each token is distributed as part of a _token bundle_, which is a binary blob that contains the token itself along with the VeraId chain of trust. To authenticate, the client has to share its token bundle with the server.
 
