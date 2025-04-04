@@ -7,12 +7,12 @@ import type { ClaimSet } from './ClaimSet.js';
  */
 export interface TokenBundleVerificationResult {
   /**
-   * The member that signed the token bundle.
-   */
-  readonly member: Member;
-
-  /**
    * The claims in the token bundle.
    */
   readonly claims: ClaimSet;
+
+  /**
+   * The member that signed the token bundle.
+   */
+  readonly member: Member;
 }

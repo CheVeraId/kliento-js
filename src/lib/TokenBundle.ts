@@ -96,7 +96,7 @@ export class TokenBundle {
     let plaintext: ArrayBuffer;
     let member: Member;
     try {
-      ({ plaintext, member } = await this.signatureBundle.verify(
+      ({ member, plaintext } = await this.signatureBundle.verify(
         undefined,
         KLIENTO_SERVICE_OID,
         date,

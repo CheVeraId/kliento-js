@@ -8,13 +8,16 @@ import { ORG_NAME, USER_NAME } from './testUtils/veraidStubs.js';
 import { Token } from './Token.js';
 import { TokenBundle } from './TokenBundle.js';
 
+const TRUST_CHAIN_TTL_MINUTES = 10;
 const MOCK_TRUST_CHAIN = await MockTrustChain.generate(
   ORG_NAME,
   USER_NAME,
-  addMinutes(new Date(), 10),
+  addMinutes(new Date(), TRUST_CHAIN_TTL_MINUTES),
 );
 
 const TOKEN = new Token(AUDIENCE);
+
+const TOKEN_BUNDLE_TTL = 10;
 
 describe('TokenBundle', () => {
   describe('sign', () => {
@@ -23,7 +26,7 @@ describe('TokenBundle', () => {
         TOKEN,
         MOCK_TRUST_CHAIN.signerPrivateKey,
         MOCK_TRUST_CHAIN.chain,
-        addSeconds(new Date(), 10),
+        addSeconds(new Date(), TOKEN_BUNDLE_TTL),
       );
 
       const { member } = await tokenBundle.signatureBundle.verify(
@@ -42,7 +45,7 @@ describe('TokenBundle', () => {
         TOKEN,
         MOCK_TRUST_CHAIN.signerPrivateKey,
         MOCK_TRUST_CHAIN.chain,
-        addSeconds(new Date(), 10),
+        addSeconds(new Date(), TOKEN_BUNDLE_TTL),
       );
 
       const { plaintext } = await tokenBundle.signatureBundle.verify(
@@ -95,7 +98,7 @@ describe('TokenBundle', () => {
         TOKEN,
         MOCK_TRUST_CHAIN.signerPrivateKey,
         MOCK_TRUST_CHAIN.chain,
-        addSeconds(startDate, 10),
+        addSeconds(startDate, TOKEN_BUNDLE_TTL),
       );
 
       await expect(
@@ -123,7 +126,7 @@ describe('TokenBundle', () => {
         TOKEN,
         MOCK_TRUST_CHAIN.signerPrivateKey,
         MOCK_TRUST_CHAIN.chain,
-        addSeconds(startDate, 10),
+        addSeconds(startDate, TOKEN_BUNDLE_TTL),
         {
           startDate,
         },
@@ -150,11 +153,12 @@ describe('TokenBundle', () => {
 
   describe('verify', () => {
     it('should use current date by default', async () => {
+      const shortTokenBundleTtl = 5;
       const tokenBundle = await TokenBundle.sign(
         TOKEN,
         MOCK_TRUST_CHAIN.signerPrivateKey,
         MOCK_TRUST_CHAIN.chain,
-        addSeconds(new Date(), 5), // Use a very narrow window
+        addSeconds(new Date(), shortTokenBundleTtl),
       );
 
       await expect(
@@ -165,7 +169,8 @@ describe('TokenBundle', () => {
     });
 
     it('should use specified date if provided', async () => {
-      const expiry = addSeconds(setMilliseconds(new Date(), 0), 10);
+      const now = setMilliseconds(new Date(), 0);
+      const expiry = addSeconds(now, TOKEN_BUNDLE_TTL);
       const tokenBundle = await TokenBundle.sign(
         TOKEN,
         MOCK_TRUST_CHAIN.signerPrivateKey,
@@ -194,7 +199,7 @@ describe('TokenBundle', () => {
         KLIENTO_SERVICE_OID,
         MOCK_TRUST_CHAIN.chain,
         MOCK_TRUST_CHAIN.signerPrivateKey,
-        addSeconds(new Date(), 10),
+        addSeconds(new Date(), TOKEN_BUNDLE_TTL),
         {
           shouldEncapsulatePlaintext: true,
         },
@@ -214,7 +219,7 @@ describe('TokenBundle', () => {
         TOKEN,
         MOCK_TRUST_CHAIN.signerPrivateKey,
         MOCK_TRUST_CHAIN.chain,
-        addSeconds(new Date(), 10),
+        addSeconds(new Date(), TOKEN_BUNDLE_TTL),
       );
 
       const differentAudience = `not-${AUDIENCE}`;
@@ -232,7 +237,7 @@ describe('TokenBundle', () => {
           TOKEN,
           MOCK_TRUST_CHAIN.signerPrivateKey,
           MOCK_TRUST_CHAIN.chain,
-          addSeconds(new Date(), 10),
+          addSeconds(new Date(), TOKEN_BUNDLE_TTL),
         );
 
         const { member } = await tokenBundle.verify(AUDIENCE, {
@@ -252,7 +257,7 @@ describe('TokenBundle', () => {
           token,
           MOCK_TRUST_CHAIN.signerPrivateKey,
           MOCK_TRUST_CHAIN.chain,
-          addSeconds(new Date(), 10),
+          addSeconds(new Date(), TOKEN_BUNDLE_TTL),
         );
 
         const { claims } = await tokenBundle.verify(AUDIENCE, {
@@ -270,7 +275,7 @@ describe('TokenBundle', () => {
           token,
           MOCK_TRUST_CHAIN.signerPrivateKey,
           MOCK_TRUST_CHAIN.chain,
-          addSeconds(new Date(), 10),
+          addSeconds(new Date(), TOKEN_BUNDLE_TTL),
         );
 
         const { claims } = await tokenBundle.verify(AUDIENCE, {
@@ -288,7 +293,7 @@ describe('TokenBundle', () => {
         TOKEN,
         MOCK_TRUST_CHAIN.signerPrivateKey,
         MOCK_TRUST_CHAIN.chain,
-        addSeconds(new Date(), 10),
+        addSeconds(new Date(), TOKEN_BUNDLE_TTL),
       );
 
       const tokenBundleSerialised = tokenBundle.serialise();
@@ -334,7 +339,7 @@ describe('TokenBundle', () => {
         TOKEN,
         MOCK_TRUST_CHAIN.signerPrivateKey,
         MOCK_TRUST_CHAIN.chain,
-        addSeconds(new Date(), 10),
+        addSeconds(new Date(), TOKEN_BUNDLE_TTL),
       );
 
       const bundle = tokenBundle.serialise();
