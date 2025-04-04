@@ -1,9 +1,10 @@
-import { MockTrustChain } from '@relaycorp/veraid';
+import { MockTrustChain, SignatureBundle, VeraidError } from '@relaycorp/veraid';
 import { addMinutes, addSeconds, setMilliseconds, subSeconds } from 'date-fns';
 import { describe, expect, it } from 'vitest';
+import { vi } from 'vitest';
 
 import { KLIENTO_SERVICE_OID, MAX_TOKEN_BUNDLE_OCTETS } from './serviceConfig.js';
-import { AUDIENCE } from './testUtils/klientoStubs.js';
+import { AUDIENCE, CLAIM_KEY, CLAIM_VALUE } from './testUtils/klientoStubs.js';
 import { ORG_NAME, USER_NAME } from './testUtils/veraidStubs.js';
 import { Token } from './Token.js';
 import { TokenBundle } from './TokenBundle.js';
@@ -138,6 +139,117 @@ describe('TokenBundle', () => {
           MOCK_TRUST_CHAIN.dnssecTrustAnchors,
         ),
       ).rejects.toThrow();
+    });
+  });
+
+  describe('verify', () => {
+    it('should use current date by default', async () => {
+      const tokenBundle = await TokenBundle.sign(
+        TOKEN,
+        MOCK_TRUST_CHAIN.signerPrivateKey,
+        MOCK_TRUST_CHAIN.chain,
+        addSeconds(new Date(), 5), // Use a very narrow window
+      );
+
+      await expect(
+        tokenBundle.verify(AUDIENCE, {
+          trustAnchors: MOCK_TRUST_CHAIN.dnssecTrustAnchors,
+        }),
+      ).resolves.toBeDefined();
+    });
+
+    it('should use specified date if provided', async () => {
+      const expiry = addSeconds(setMilliseconds(new Date(), 0), 10);
+      const tokenBundle = await TokenBundle.sign(
+        TOKEN,
+        MOCK_TRUST_CHAIN.signerPrivateKey,
+        MOCK_TRUST_CHAIN.chain,
+        expiry,
+      );
+
+      await expect(
+        tokenBundle.verify(AUDIENCE, {
+          date: expiry,
+          trustAnchors: MOCK_TRUST_CHAIN.dnssecTrustAnchors,
+        }),
+      ).resolves.toBeDefined();
+      await expect(
+        tokenBundle.verify(AUDIENCE, {
+          date: addSeconds(expiry, 1),
+          trustAnchors: MOCK_TRUST_CHAIN.dnssecTrustAnchors,
+        }),
+      ).rejects.toThrow('Invalid VeraId signature bundle');
+    });
+
+    it('should refuse malformed tokens', async () => {
+      const malformedToken = new TextEncoder().encode('malformed');
+      const signatureBundle = await SignatureBundle.sign(
+        malformedToken,
+        KLIENTO_SERVICE_OID,
+        MOCK_TRUST_CHAIN.chain,
+        MOCK_TRUST_CHAIN.signerPrivateKey,
+        addSeconds(new Date(), 10),
+        { shouldEncapsulatePlaintext: true },
+      );
+      const invalidTokenBundle = TokenBundle.deserialise(signatureBundle.serialise());
+
+      await expect(
+        invalidTokenBundle.verify(AUDIENCE, {
+          trustAnchors: MOCK_TRUST_CHAIN.dnssecTrustAnchors,
+        }),
+      ).rejects.toThrow('Malformed token');
+    });
+
+    it('should refuse token with mismatching audience', async () => {
+      const tokenBundle = await TokenBundle.sign(
+        TOKEN,
+        MOCK_TRUST_CHAIN.signerPrivateKey,
+        MOCK_TRUST_CHAIN.chain,
+        addSeconds(new Date(), 10),
+      );
+
+      const differentAudience = `not-${AUDIENCE}`;
+      await expect(
+        tokenBundle.verify(differentAudience, {
+          trustAnchors: MOCK_TRUST_CHAIN.dnssecTrustAnchors,
+        }),
+      ).rejects.toThrow(`Audience mismatch: Expected ${differentAudience}, got ${AUDIENCE}`);
+    });
+
+    it('should return token claims if bundle is valid', async () => {
+      const token = new Token(AUDIENCE, {
+        [CLAIM_KEY]: CLAIM_VALUE,
+      });
+      const tokenBundle = await TokenBundle.sign(
+        token,
+        MOCK_TRUST_CHAIN.signerPrivateKey,
+        MOCK_TRUST_CHAIN.chain,
+        addSeconds(new Date(), 10),
+      );
+
+      const { claims } = await tokenBundle.verify(AUDIENCE, {
+        trustAnchors: MOCK_TRUST_CHAIN.dnssecTrustAnchors,
+      });
+
+      expect(claims).toEqual({
+        [CLAIM_KEY]: CLAIM_VALUE,
+      });
+    });
+
+    it('should return empty claims if bundle is valid but token has no claims', async () => {
+      const token = new Token(AUDIENCE);
+      const tokenBundle = await TokenBundle.sign(
+        token,
+        MOCK_TRUST_CHAIN.signerPrivateKey,
+        MOCK_TRUST_CHAIN.chain,
+        addSeconds(new Date(), 10),
+      );
+
+      const { claims } = await tokenBundle.verify(AUDIENCE, {
+        trustAnchors: MOCK_TRUST_CHAIN.dnssecTrustAnchors,
+      });
+
+      expect(claims).toEqual({});
     });
   });
 

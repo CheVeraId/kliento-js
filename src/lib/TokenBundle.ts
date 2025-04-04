@@ -3,6 +3,8 @@ import { Chain, SignatureBundle } from '@relaycorp/veraid';
 import { KLIENTO_SERVICE_OID, MAX_TOKEN_BUNDLE_OCTETS } from './serviceConfig.js';
 import { Token } from './Token.js';
 import { TokenBundleOptions } from './TokenBundleOptions.js';
+import { TokenBundleVerificationOptions } from './TokenBundleVerificationOptions.js';
+import { TokenBundleVerificationResult } from './TokenBundleVerificationResult.js';
 
 /**
  * Kliento token bundle.
@@ -77,5 +79,42 @@ export class TokenBundle {
    */
   public serialise(): ArrayBuffer {
     return this.signatureBundle.serialise();
+  }
+
+  /**
+   * Verify the token bundle.
+   * @param audience - The required audience of the token.
+   * @param options - Verification options.
+   * @returns The token.
+   */
+  public async verify(
+    audience: string,
+    { date, trustAnchors }: Partial<TokenBundleVerificationOptions> = {},
+  ): Promise<TokenBundleVerificationResult> {
+    let plaintext: ArrayBuffer;
+    try {
+      ({ plaintext } = await this.signatureBundle.verify(
+        undefined,
+        KLIENTO_SERVICE_OID,
+        date,
+        trustAnchors,
+      ));
+    } catch (error) {
+      throw new Error('Invalid VeraId signature bundle', { cause: error });
+    }
+
+    let token: Token;
+    try {
+      token = Token.deserialise(plaintext);
+    } catch (error) {
+      throw new Error('Malformed token', { cause: error });
+    }
+
+    if (token.audience !== audience) {
+      throw new Error(`Audience mismatch: Expected ${audience}, got ${token.audience}`);
+    }
+
+    const claims = token.claims ?? {};
+    return { claims };
   }
 }

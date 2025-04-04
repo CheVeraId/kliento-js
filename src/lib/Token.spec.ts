@@ -2,11 +2,8 @@ import { AsnParser } from '@peculiar/asn1-schema';
 import { describe, expect, it } from 'vitest';
 
 import { TokenSchema } from './schemas/TokenSchema.js';
-import { AUDIENCE } from './testUtils/klientoStubs.js';
+import { AUDIENCE, CLAIM_KEY, CLAIM_VALUE } from './testUtils/klientoStubs.js';
 import { Token } from './Token.js';
-
-const STUB_CLAIM_KEY = 'claim_key';
-const STUB_CLAIM_VALUE = 'claim_value';
 
 describe('Token', () => {
   describe('serialise', () => {
@@ -30,7 +27,7 @@ describe('Token', () => {
 
     it('should include claims if provided', () => {
       const token = new Token(AUDIENCE, {
-        [STUB_CLAIM_KEY]: STUB_CLAIM_VALUE,
+        [CLAIM_KEY]: CLAIM_VALUE,
       });
 
       const tokenSerialised = token.serialise();
@@ -38,8 +35,8 @@ describe('Token', () => {
       const tokenDeserialised = AsnParser.parse(tokenSerialised, TokenSchema);
       const [claimDeserialised] = tokenDeserialised.claims!;
 
-      expect(claimDeserialised.key).toBe(STUB_CLAIM_KEY);
-      expect(claimDeserialised.value).toBe(STUB_CLAIM_VALUE);
+      expect(claimDeserialised.key).toBe(CLAIM_KEY);
+      expect(claimDeserialised.value).toBe(CLAIM_VALUE);
     });
 
     it('should omit claims if provided empty object', () => {
@@ -72,7 +69,7 @@ describe('Token', () => {
 
     it('should output claims if present', () => {
       const claims = {
-        [STUB_CLAIM_KEY]: STUB_CLAIM_VALUE,
+        [CLAIM_KEY]: CLAIM_VALUE,
       };
       const originalToken = new Token(AUDIENCE, claims);
       const serialisation = originalToken.serialise();

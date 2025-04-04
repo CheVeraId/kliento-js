@@ -54,7 +54,7 @@
   },
   "dependencies": {
     "@peculiar/asn1-schema": "^2.3.3",
-    "@relaycorp/veraid": "^3.2.2",
+    "@relaycorp/veraid": "^3.2.3",
     "date-fns": "^4.1.0"
   }
 }
