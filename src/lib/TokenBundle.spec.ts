@@ -19,6 +19,17 @@ const TOKEN = new Token(AUDIENCE);
 
 const TOKEN_BUNDLE_TTL = 10;
 
+async function makeTokenBundleSerialised(): Promise<Buffer> {
+  const tokenBundle = await TokenBundle.sign(
+    TOKEN,
+    MOCK_TRUST_CHAIN.signerPrivateKey,
+    MOCK_TRUST_CHAIN.chain,
+    addSeconds(new Date(), TOKEN_BUNDLE_TTL),
+  );
+
+  return Buffer.from(tokenBundle.serialise());
+}
+
 describe('TokenBundle', () => {
   describe('sign', () => {
     it('should sign token with specified chain and key', async () => {
@@ -348,6 +359,47 @@ describe('TokenBundle', () => {
 
       expect(
         Buffer.from(bundle).equals(Buffer.from(deserialisedTokenBundle.serialise())),
+      ).toBeTruthy();
+    });
+  });
+
+  describe('deserialiseAuthHeader', () => {
+    it('should require the scheme "Kliento"', () => {
+      const headerValue = 'Bearer token';
+
+      expect(() => TokenBundle.deserialiseFromAuthHeader(headerValue)).toThrow(
+        'Authorization scheme must be "Kliento"',
+      );
+    });
+
+    it('should validate scheme case-insensitively', async () => {
+      const tokenBundleSerialised = await makeTokenBundleSerialised();
+      const base64Bundle = tokenBundleSerialised.toString('base64');
+      const headerValue = `kliento ${base64Bundle}`;
+
+      expect(() => {
+        TokenBundle.deserialiseFromAuthHeader(headerValue);
+      }).not.toThrow();
+    });
+
+    it('should require token to be a well-formed token bundle', () => {
+      const malformedBase64Bundle = Buffer.from('not-a-token-bundle').toString('base64');
+      const headerValue = `Kliento ${malformedBase64Bundle}`;
+
+      expect(() => TokenBundle.deserialiseFromAuthHeader(headerValue)).toThrow(
+        'Token serialisation is malformed',
+      );
+    });
+
+    it('should return a token bundle if header value is valid', async () => {
+      const tokenBundleSerialised = await makeTokenBundleSerialised();
+      const base64Bundle = tokenBundleSerialised.toString('base64');
+      const headerValue = `Kliento ${base64Bundle}`;
+
+      const deserialisedBundle = TokenBundle.deserialiseFromAuthHeader(headerValue);
+
+      expect(
+        Buffer.from(deserialisedBundle.serialise()).equals(tokenBundleSerialised),
       ).toBeTruthy();
     });
   });

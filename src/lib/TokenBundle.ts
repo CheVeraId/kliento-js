@@ -6,6 +6,9 @@ import { TokenBundleOptions } from './TokenBundleOptions.js';
 import { TokenBundleVerification } from './TokenBundleVerification.js';
 import { TokenBundleVerificationOptions } from './TokenBundleVerificationOptions.js';
 
+const AUTHORIZATION_SCHEME = 'Kliento';
+const AUTHORIZATION_VALUE_PREFIX = `${AUTHORIZATION_SCHEME} `.toLowerCase();
+
 /**
  * Kliento token bundle.
  */
@@ -40,6 +43,30 @@ export class TokenBundle {
     }
 
     return tokenBundle;
+  }
+
+  /**
+   * Deserialise a token bundle from an authorization header.
+   * @param header - The authorization header.
+   * @returns A new token bundle.
+   *
+   * This value requires the scheme "Kliento" and the token bundle to be base64-encoded.
+   */
+  public static deserialiseFromAuthHeader(header: string): TokenBundle {
+    const scheme = header.slice(0, AUTHORIZATION_VALUE_PREFIX.length);
+    if (scheme.toLowerCase() !== AUTHORIZATION_VALUE_PREFIX) {
+      throw new Error('Authorization scheme must be "Kliento"');
+    }
+
+    const token = header.slice(AUTHORIZATION_VALUE_PREFIX.length);
+
+    const tokenBundleSerialised = Buffer.from(token, 'base64');
+
+    try {
+      return TokenBundle.deserialise(tokenBundleSerialised);
+    } catch (error) {
+      throw new Error('Token serialisation is malformed', { cause: error });
+    }
   }
 
   /**

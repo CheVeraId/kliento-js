@@ -18,20 +18,23 @@ npm install kliento
 
 To verify a token bundle, the server simply has to use the [`TokenBundle.verify()` method](https://docs.veraid.net/kliento-js/classes/TokenBundle.html#verify).
 
-For example, if the bundle is present in an `Authorization` request header, the server could verify it as follows:
+For example, in an HTTP server, the bundle can be passed in an `Authorization` request header with the `Kliento` scheme, and the server could verify it as follows:
 
 ```typescript
-import { AuthHeaderValue, TokenBundle, type TokenBundleVerification } from 'kliento';
+import { TokenBundle, type TokenBundleVerification } from 'kliento';
 
+// Replace with a unique identifier for your server
 const AUDIENCE = 'https://api.example.com';
 
 async function verifyTokenBundle(authHeaderValue: string): Promise<TokenBundleVerification> {
-    const { tokenBundle } = AuthHeaderValue.parse(authHeaderValue);
+    const tokenBundle = TokenBundle.deserialiseFromAuthHeader(authHeaderValue);
     return tokenBundle.verify(AUDIENCE);
 }
 ```
 
-As long as the `Authorization` header and its encapsulated Kliento token bundle are valid, verification will succeed and `verifyTokenBundle()` will output:
+Alternatively, if the bundle is already available as an `ArrayBuffer` or `Buffer`, it should be deserialised with the [`TokenBundle.deserialise()` method](https://docs.veraid.net/kliento-js/classes/TokenBundle.html#deserialise) instead.
+
+Either way, as long as the Kliento token bundle is valid and bound to the specified audience, verification will succeed and `verifyTokenBundle()` will output:
 
 - `subject`: The VeraId [`Member`](https://docs.relaycorp.tech/veraid-js/interfaces/Member.html) to whom the token bundle is attributed (e.g. `example.com`, `alice@example.com`).
 - `claims`: The [claims](https://docs.veraid.net/kliento-js/interfaces/ClaimSet.html) in the token. This is an optional key/value map analogous to JWT claims. It's up to the server to define what claims are present and what they mean.
