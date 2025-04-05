@@ -11,7 +11,7 @@ Simply put, Kliento extends the idea of AWS roles, Azure managed identities, GCP
 The latest version can be installed from NPM:
 
 ```shell
-npm install kliento
+npm install @veraid/kliento
 ```
 
 ## Usage
@@ -23,7 +23,7 @@ To verify a token bundle, the server simply has to use the [`TokenBundle.verify(
 For example, in an HTTP server, the bundle can be passed Base64-encoded in an `Authorization` request header with the `Kliento` scheme (i.e. `Authorization: Kliento <base64-encoded-bundle>`), and the server could verify it as follows:
 
 ```typescript
-import { TokenBundle, type TokenBundleVerification } from 'kliento';
+import { TokenBundle, type TokenBundleVerification } from '@veraid/kliento';
 
 // Replace with a unique identifier for your server
 const AUDIENCE = 'https://api.example.com';
@@ -48,7 +48,7 @@ If the deserialisation input is malformed, `deserialiseFromAuthHeader()` and `de
 To obtain token bundles, clients must first register the _signature specification_ for such bundles in [VeraId Authority](https://docs.relaycorp.tech/veraid-authority/). The payload of the signature specification must be set to a Kliento token, which could be generated as follows:
 
 ```typescript
-import { Token } from 'kliento';
+import { Token } from '@veraid/kliento';
 
 // Use the audience specified by the server
 const audience = 'https://api.example.com';
