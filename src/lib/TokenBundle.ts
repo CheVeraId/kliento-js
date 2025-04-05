@@ -48,7 +48,8 @@ export class TokenBundle {
   /**
    * Deserialise a token bundle from an authorization header.
    * @param header - The authorization header.
-   * @returns A new token bundle.
+   * @returns The token bundle.
+   * @throws An error if the authorization scheme is not "Kliento" or the token bundle is malformed.
    *
    * This value requires the scheme "Kliento" and the token bundle to be base64-encoded.
    */

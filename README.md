@@ -1,8 +1,10 @@
 # Kliento JavaScript Library
 
-This is the JavaScript implementation of [VeraId](https://veraid.net/) Kliento, a **client authentication protocol** where tokens contain all the data required to be verified without pre-distributing public keys or accessing remote servers. Think JWTs, without JWKS documents to pre-distribute or download in real-time.
+This is the JavaScript implementation of Kliento, a **client authentication protocol** where tokens contain all the data required to be verified without pre-distributing public keys or accessing remote servers. Think JWTs, without JWKS documents to pre-distribute or download in real-time.
 
-Each token is distributed as part of a _token bundle_, which is a binary blob that contains the token itself along with the VeraId chain of trust. To authenticate, the client has to share its token bundle with the server.
+Kliento is a very simple protocol based on [VeraId](https://veraid.net/). Each token is distributed as part of a _token bundle_, which is a binary blob that contains the token itself along with the VeraId chain of trust.
+
+Simply put, Kliento extends the idea of AWS roles, Azure managed identities, GCP service accounts and Kubernetes service accounts to the entire Internet in a vendor-neutral manner.
 
 ## Installation
 
@@ -14,11 +16,11 @@ npm install kliento
 
 ## Usage
 
-### Verify token bundles
+### Server-side verification
 
 To verify a token bundle, the server simply has to use the [`TokenBundle.verify()` method](https://docs.veraid.net/kliento-js/classes/TokenBundle.html#verify).
 
-For example, in an HTTP server, the bundle can be passed in an `Authorization` request header with the `Kliento` scheme, and the server could verify it as follows:
+For example, in an HTTP server, the bundle can be passed Base64-encoded in an `Authorization` request header with the `Kliento` scheme (i.e. `Authorization: Kliento <base64-encoded-bundle>`), and the server could verify it as follows:
 
 ```typescript
 import { TokenBundle, type TokenBundleVerification } from 'kliento';
@@ -28,37 +30,52 @@ const AUDIENCE = 'https://api.example.com';
 
 async function verifyTokenBundle(authHeaderValue: string): Promise<TokenBundleVerification> {
     const tokenBundle = TokenBundle.deserialiseFromAuthHeader(authHeaderValue);
-    return tokenBundle.verify(AUDIENCE);
+    return await tokenBundle.verify(AUDIENCE);
 }
 ```
 
 Alternatively, if the bundle is already available as an `ArrayBuffer` or `Buffer`, it should be deserialised with the [`TokenBundle.deserialise()` method](https://docs.veraid.net/kliento-js/classes/TokenBundle.html#deserialise) instead.
 
-Either way, as long as the Kliento token bundle is valid and bound to the specified audience, verification will succeed and `verifyTokenBundle()` will output:
+As long as the Kliento token bundle is valid and bound to the specified audience, `TokenBundle.verify()` will output:
 
-- `subject`: The VeraId [`Member`](https://docs.relaycorp.tech/veraid-js/interfaces/Member.html) to whom the token bundle is attributed (e.g. `example.com`, `alice@example.com`).
-- `claims`: The [claims](https://docs.veraid.net/kliento-js/interfaces/ClaimSet.html) in the token. This is an optional key/value map analogous to JWT claims. It's up to the server to define what claims are present and what they mean.
+- `subject`: The VeraId [`Member`](https://docs.relaycorp.tech/veraid-js/interfaces/Member.html) to whom the token bundle is attributed (e.g. `example.com`, `alice` of `example.com`).
+- `claims`: The [claims](https://docs.veraid.net/kliento-js/types/ClaimSet.html) in the token. This is an optional key/value map analogous to JWT claims. It's up to the server to define what claims are present and what they mean.
 
-### Obtain token bundles
+If the deserialisation input is malformed, `deserialiseFromAuthHeader()` and `deserialise()` will throw an error. Similarly, if the token is invalid or bound to a different audience, `verify()` will throw an error.
 
-Clients will typically obtain token bundles in the form of _organisation signatures_ from [VeraId Authority](https://docs.relaycorp.tech/veraid-authority/).
+### Client-side token acquisition
 
-Once they obtain a token bundle, they can use [AuthHeaderValue](https://docs.veraid.net/kliento-js/classes/AuthHeaderValue.html) to encode it as an `Authorization` header value. For example:
+To obtain token bundles, clients must first register the _signature specification_ for such bundles in [VeraId Authority](https://docs.relaycorp.tech/veraid-authority/). The payload of the signature specification must be set to a Kliento token, which could be generated as follows:
 
 ```typescript
-import { AuthHeaderValue } from 'kliento';
+import { Token } from 'kliento';
 
-function encodeTokenBundle(tokenBundle: TokenBundle): string {
-    const authHeaderValue = new AuthHeaderValue(tokenBundle);
-    return authHeaderValue.toString();
+// Use the audience specified by the server
+const audience = 'https://api.example.com';
+
+// Use claims supported by the server
+const claims = { permission: 'read-only' };
+
+const token = new Token(audience, claims);
+const signatureSpecPayload = token.serialise(); // ArrayBuffer
+```
+
+Once the signature specification is registered, clients can obtain token bundles for that specification by making a simple HTTP request to VeraId Authority. **No Kliento or VeraId libraries are required at runtime.**
+
+For example, to send a token bundle to an HTTP server in the `Authorization` request header, the client could use the following code to encode the header value:
+
+```typescript
+function encodeAuthHeaderValue(tokenBundle: Buffer): string {
+    const bundleEncoded = tokenBundle.toString('base64');
+    return `Kliento ${bundleEncoded}`;
 }
 ```
 
 ## Custom trust anchors
 
-This library allows for custom DNSSEC trust anchors to be used during verification, but there are only two legitimate reasons to override this:
+`TokenBundle.verify()` allows for custom DNSSEC trust anchors to be passed, but there are only two legitimate reasons to do this:
 
-- To test your app locally (e.g., in a CI pipeline, during development).
+- To test token bundle verification in unit or integration tests.
 - To reflect an official change to [the root zone trust anchors](https://www.iana.org/dnssec/files), if you're not able to use a version of this library that uses the new trust anchors.
 
 ## API docs
