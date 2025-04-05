@@ -4,6 +4,6 @@ import { defineConfig } from 'eslint/config';
 export default defineConfig([
     ...baseConfig,
     {
-        ignores: ['coverage/**'],
+        ignores: ['build/**', 'coverage/**'],
     },
 ]);
