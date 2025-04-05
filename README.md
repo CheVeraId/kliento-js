@@ -8,11 +8,7 @@ Simply put, Kliento extends the idea of AWS roles, Azure managed identities, GCP
 
 ## Installation
 
-The latest version can be installed from NPM:
-
-```shell
-npm install @veraid/kliento
-```
+This library is available on NPM as [`@veraid/kliento`](https://www.npmjs.com/package/@veraid/kliento).
 
 ## Usage
 
