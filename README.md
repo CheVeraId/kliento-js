@@ -56,7 +56,7 @@ const token = new Token(audience, claims);
 const signatureSpecPayload = token.serialise(); // ArrayBuffer
 ```
 
-Once the signature specification is registered, clients can obtain token bundles for that specification by making a simple HTTP request to VeraId Authority. **No Kliento or VeraId libraries are required at runtime.**
+Once the signature specification is registered, clients can obtain token bundles for that specification by making a simple HTTP request to VeraId Authority. No Kliento or VeraId libraries are required at runtime, but clients may use a high-level library to simplify the process, such as [`@veraid/authority-credentials`](https://github.com/CheVeraId/authority-credentials-js) for JS.
 
 For example, to send a token bundle to an HTTP server in the `Authorization` request header, the client could use the following code to encode the header value:
 
