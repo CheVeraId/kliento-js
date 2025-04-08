@@ -35,7 +35,7 @@
     "node": ">=20"
   },
   "devDependencies": {
-    "@relaycorp/eslint-config": "^2.0.81",
+    "@relaycorp/eslint-config": "^2.0.86",
     "@relaycorp/shared-config": "^1.15.1",
     "@vitest/coverage-v8": "^3.1.1",
     "del-cli": "^6.0.0",
