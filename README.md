@@ -43,8 +43,8 @@ If the deserialisation input is malformed, `deserialiseFromAuthHeader()` and `de
 
 To obtain token bundles, clients must first register the _signature specification_ for such bundles in [VeraId Authority](https://docs.relaycorp.tech/veraid-authority/). The payload of the signature specification must be set to a Kliento token, which is a JSON document with the following properties:
 
-- `audience`: The audience for which the token is valid.
-- `claims`: An optional map of key/value pairs, where keys and values are strings.
+- `audience` (`string`, required): The audience for which the token is valid.
+- `claims` (`object`, optional): A map of key/value pairs, where keys and values are strings.
 
 For example:
 
