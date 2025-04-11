@@ -1,9 +1,13 @@
-import { AsnParser } from '@peculiar/asn1-schema';
 import { describe, expect, it } from 'vitest';
 
-import { TokenSchema } from './schemas/TokenSchema.js';
 import { AUDIENCE, CLAIM_KEY, CLAIM_VALUE } from './testUtils/klientoStubs.js';
 import { Token } from './Token.js';
+
+function jsonParse(serialisation: ArrayBuffer): unknown {
+  const string = new TextDecoder().decode(serialisation);
+
+  return JSON.parse(string);
+}
 
 describe('Token', () => {
   describe('serialise', () => {
@@ -12,8 +16,8 @@ describe('Token', () => {
 
       const tokenSerialised = token.serialise();
 
-      const tokenDeserialised = AsnParser.parse(tokenSerialised, TokenSchema);
-      expect(tokenDeserialised.audience).toBe(AUDIENCE);
+      const tokenDeserialised = jsonParse(tokenSerialised);
+      expect(tokenDeserialised).toHaveProperty('audience', AUDIENCE);
     });
 
     it('should omit claims if not provided', () => {
@@ -21,8 +25,8 @@ describe('Token', () => {
 
       const tokenSerialised = token.serialise();
 
-      const tokenDeserialised = AsnParser.parse(tokenSerialised, TokenSchema);
-      expect(tokenDeserialised.claims).toBeUndefined();
+      const tokenDeserialised = jsonParse(tokenSerialised);
+      expect(tokenDeserialised).not.toHaveProperty('claims');
     });
 
     it('should include claims if provided', () => {
@@ -32,11 +36,10 @@ describe('Token', () => {
 
       const tokenSerialised = token.serialise();
 
-      const tokenDeserialised = AsnParser.parse(tokenSerialised, TokenSchema);
-      const [claimDeserialised] = tokenDeserialised.claims!;
-
-      expect(claimDeserialised.key).toBe(CLAIM_KEY);
-      expect(claimDeserialised.value).toBe(CLAIM_VALUE);
+      const tokenDeserialised = jsonParse(tokenSerialised);
+      expect(tokenDeserialised).toHaveProperty('claims', {
+        [CLAIM_KEY]: CLAIM_VALUE,
+      });
     });
 
     it('should omit claims if provided empty object', () => {
@@ -44,14 +47,22 @@ describe('Token', () => {
 
       const tokenSerialised = token.serialise();
 
-      const tokenDeserialised = AsnParser.parse(tokenSerialised, TokenSchema);
-      expect(tokenDeserialised.claims).toBeUndefined();
+      const tokenDeserialised = jsonParse(tokenSerialised);
+      expect(tokenDeserialised).not.toHaveProperty('claims');
     });
   });
 
   describe('deserialise', () => {
-    it('should throw if serialisation is malformed', () => {
-      const invalidSerialisation = new ArrayBuffer(1);
+    const encoder = new TextEncoder();
+
+    it('should throw if serialisation is malformed JSON', () => {
+      const invalidSerialisation = encoder.encode('malformed');
+
+      expect(() => Token.deserialise(invalidSerialisation)).toThrowError('Malformed JSON value');
+    });
+
+    it('should throw if serialisation is invalid', () => {
+      const invalidSerialisation = encoder.encode('{"claims": {}}');
 
       expect(() => Token.deserialise(invalidSerialisation)).toThrowError(
         'Invalid token serialisation',
@@ -59,7 +70,7 @@ describe('Token', () => {
     });
 
     it('should output audience', () => {
-      const originalToken = new Token(AUDIENCE);
+      const originalToken = new Token(AUDIENCE, {});
       const serialisation = originalToken.serialise();
 
       const deserialisedToken = Token.deserialise(serialisation);
@@ -79,22 +90,27 @@ describe('Token', () => {
       expect(deserialisedToken.claims).toEqual(claims);
     });
 
-    it('should not output claims if absent', () => {
-      const originalToken = new Token(AUDIENCE);
-      const serialisation = originalToken.serialise();
+    it('should output empty claims if absent', () => {
+      const tokenDoc = {
+        audience: AUDIENCE,
+      };
+      const serialisation = encoder.encode(JSON.stringify(tokenDoc));
 
       const deserialisedToken = Token.deserialise(serialisation);
 
-      expect(deserialisedToken.claims).toBeUndefined();
+      expect(deserialisedToken.claims).toEqual({});
     });
 
-    it('should not output claims if empty', () => {
-      const originalToken = new Token(AUDIENCE, {});
-      const serialisation = originalToken.serialise();
+    it('should output claims if empty', () => {
+      const tokenDoc = {
+        audience: AUDIENCE,
+        claims: {},
+      };
+      const serialisation = encoder.encode(JSON.stringify(tokenDoc));
 
       const deserialisedToken = Token.deserialise(serialisation);
 
-      expect(deserialisedToken.claims).toBeUndefined();
+      expect(deserialisedToken.claims).toEqual({});
     });
   });
 });

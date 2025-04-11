@@ -145,8 +145,6 @@ export class TokenBundle {
       throw new Error(`Audience mismatch: Expected ${audience}, got ${token.audience}`);
     }
 
-    const claims = token.claims ?? {};
-
-    return { claims, subject: member };
+    return { claims: token.claims, subject: member };
   }
 }

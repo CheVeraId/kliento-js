@@ -1,9 +1,5 @@
-import { AsnParser, AsnSerializer } from '@peculiar/asn1-schema';
-
 import { ClaimSet } from './ClaimSet.js';
-import { TokenClaimSchema } from './schemas/TokenClaimSchema.js';
-import { TokenClaimSetSchema } from './schemas/TokenClaimSetSchema.js';
-import { TokenSchema } from './schemas/TokenSchema.js';
+import { isValidToken } from './TokenSchema.js';
 
 /**
  * Kliento token.
@@ -16,7 +12,7 @@ export class Token {
    */
   constructor(
     public readonly audience: string,
-    public readonly claims?: ClaimSet,
+    public readonly claims: ClaimSet = {},
   ) {}
 
   /**
@@ -26,18 +22,25 @@ export class Token {
    * @throws If the serialisation is malformed.
    */
   public static deserialise(serialisation: ArrayBuffer): Token {
-    let schema: TokenSchema;
+    const string = new TextDecoder().decode(serialisation);
+
+    let tokenDoc: unknown;
+
     try {
-      schema = AsnParser.parse(serialisation, TokenSchema);
+      tokenDoc = JSON.parse(string);
     } catch (error) {
-      throw new Error('Invalid token serialisation', { cause: error });
+      throw new Error('Malformed JSON value', {
+        cause: error,
+      });
     }
 
-    const claims = schema.claims
-      ? Object.fromEntries(schema.claims.map((claim) => [claim.key, claim.value]))
-      : undefined;
+    if (!isValidToken(tokenDoc)) {
+      throw new Error('Invalid token serialisation');
+    }
 
-    return new Token(schema.audience, claims);
+    const claims = tokenDoc.claims ?? {};
+
+    return new Token(tokenDoc.audience, claims);
   }
 
   /**
@@ -45,21 +48,12 @@ export class Token {
    * @returns The serialised token.
    */
   public serialise(): ArrayBuffer {
-    const schema = new TokenSchema();
-    schema.audience = this.audience;
+    const claimsAttribute = Object.keys(this.claims).length > 0 ? this.claims : undefined;
+    const tokenDoc = {
+      audience: this.audience,
+      claims: claimsAttribute,
+    };
 
-    const claims = this.claims ? Object.entries(this.claims) : [];
-    if (claims.length > 0) {
-      const claimSchemas = claims.map(([key, value]) => {
-        const claim = new TokenClaimSchema();
-        claim.key = key;
-        claim.value = value;
-
-        return claim;
-      });
-      schema.claims = new TokenClaimSetSchema(claimSchemas);
-    }
-
-    return AsnSerializer.serialize(schema);
+    return new TextEncoder().encode(JSON.stringify(tokenDoc));
   }
 }

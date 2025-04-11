@@ -41,19 +41,18 @@ If the deserialisation input is malformed, `deserialiseFromAuthHeader()` and `de
 
 ### Client-side token acquisition
 
-To obtain token bundles, clients must first register the _signature specification_ for such bundles in [VeraId Authority](https://docs.relaycorp.tech/veraid-authority/). The payload of the signature specification must be set to a Kliento token, which could be generated as follows:
+To obtain token bundles, clients must first register the _signature specification_ for such bundles in [VeraId Authority](https://docs.relaycorp.tech/veraid-authority/). The payload of the signature specification must be set to a Kliento token, which is a JSON document with the following properties:
 
-```typescript
-import { Token } from '@veraid/kliento';
+- `audience`: The audience for which the token is valid.
+- `claims`: An optional map of key/value pairs, where keys and values are strings.
 
-// Use the audience specified by the server
-const audience = 'https://api.example.com';
+For example:
 
-// Use claims supported by the server
-const claims = { permission: 'read-only' };
-
-const token = new Token(audience, claims);
-const signatureSpecPayload = token.serialise(); // ArrayBuffer
+```json
+{
+  "audience": "https://api.example.com",
+  "claims": { "permission": "read-only" }
+}
 ```
 
 Once the signature specification is registered, clients can obtain token bundles for that specification by making a simple HTTP request to VeraId Authority. No Kliento or VeraId libraries are required at runtime, but clients may use a high-level library to simplify the process, such as [`@veraid/authority-credentials`](https://github.com/CheVeraId/authority-credentials-js) for JS.
