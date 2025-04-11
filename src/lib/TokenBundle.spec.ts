@@ -243,7 +243,7 @@ describe('TokenBundle', () => {
     });
 
     describe('successful verification', () => {
-      it('should return member that signed bundle', async () => {
+      it('should return user that signed bundle', async () => {
         const tokenBundle = await TokenBundle.sign(
           TOKEN,
           MOCK_TRUST_CHAIN.signerPrivateKey,
@@ -251,12 +251,31 @@ describe('TokenBundle', () => {
           addSeconds(new Date(), TOKEN_BUNDLE_TTL),
         );
 
-        const { subject } = await tokenBundle.verify(AUDIENCE, {
+        const { subjectId } = await tokenBundle.verify(AUDIENCE, {
           trustAnchors: MOCK_TRUST_CHAIN.dnssecTrustAnchors,
         });
 
-        expect(subject.organisation).toBe(ORG_NAME);
-        expect(subject.user).toBe(USER_NAME);
+        expect(subjectId).toBe(`${USER_NAME}@${ORG_NAME}`);
+      });
+
+      it('should return bot that signed bundle', async () => {
+        const botTrustChain = await MockTrustChain.generate(
+          ORG_NAME,
+          undefined,
+          addMinutes(new Date(), TRUST_CHAIN_TTL_MINUTES),
+        );
+        const tokenBundle = await TokenBundle.sign(
+          TOKEN,
+          botTrustChain.signerPrivateKey,
+          botTrustChain.chain,
+          addSeconds(new Date(), TOKEN_BUNDLE_TTL),
+        );
+
+        const { subjectId } = await tokenBundle.verify(AUDIENCE, {
+          trustAnchors: botTrustChain.dnssecTrustAnchors,
+        });
+
+        expect(subjectId).toBe(ORG_NAME);
       });
 
       it('should return token claims if bundle is valid', async () => {

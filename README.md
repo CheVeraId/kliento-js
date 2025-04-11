@@ -34,7 +34,7 @@ Alternatively, if the bundle is already available as an `ArrayBuffer` or `Buffer
 
 As long as the Kliento token bundle is valid and bound to the specified audience, `TokenBundle.verify()` will output:
 
-- `subject`: The VeraId [`Member`](https://docs.relaycorp.tech/veraid-js/interfaces/Member.html) to whom the token bundle is attributed (e.g. `example.com`, `alice` of `example.com`).
+- `subjectId`: The id of the VeraId member to whom the token bundle is attributed (e.g. `example.com`, `alice@example.com`).
 - `claims`: The [claims](https://docs.veraid.net/kliento-js/types/ClaimSet.html) in the token. This is an optional key/value map analogous to JWT claims. It's up to the server to define what claims are present and what they mean.
 
 If the deserialisation input is malformed, `deserialiseFromAuthHeader()` and `deserialise()` will throw an error. Similarly, if the token is invalid or bound to a different audience, `verify()` will throw an error.

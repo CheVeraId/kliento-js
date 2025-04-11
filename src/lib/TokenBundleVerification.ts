@@ -1,5 +1,3 @@
-import type { Member } from '@relaycorp/veraid';
-
 import type { ClaimSet } from './ClaimSet.js';
 
 /**
@@ -12,7 +10,9 @@ export interface TokenBundleVerification {
   readonly claims: ClaimSet;
 
   /**
-   * The member that signed the token bundle.
+   * The id of the member that signed the token bundle.
+   *
+   * For example, `example.com` or `alice@example.com`.
    */
-  readonly subject: Member;
+  readonly subjectId: string;
 }
